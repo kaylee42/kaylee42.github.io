@@ -102,4 +102,4 @@ facebook_like: false
 
 sidebar: collapse
 
-default_asides: [asides/recent_posts.html, ... , asides/footer_in_sidebar.html]
+default_asides: [asides/recent_posts.html, asides/footer_in_sidebar.html]
