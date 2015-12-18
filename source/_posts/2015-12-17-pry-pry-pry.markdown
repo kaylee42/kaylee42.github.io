@@ -28,7 +28,7 @@ What does this do? Oh you know… Just gives you access to the entire Ruby docum
 
 ![using show-doc with pry](/images/pry/show-doc.png)
 
-But wait! Maybe you need to know more about the reject method, but can’t remember what class(es) it belongs to. How will you be able to search the documentation? Never fear, pry can help you with that too! Simply type `find-method reject` (or whatever method you want to find) and pry will pull up a list of classes and modules that can implement the method for you. Check it out:
+But wait! Maybe you need to know more about the reject method, but can’t remember what class(es) it belongs to. How will you be able to search the documentation? Never fear, pry can help you with that too! Simply type `find-method reject` (or whatever method you want to find) and pry will pull up a list of classes and modules that can implement the method for you. Searching this way also does not have to be exact, so that our search for `reject` returns both `reject` and `reject!` Check it out:
 
 ![using find-method with pry](/images/pry/find-method.png)
 
