@@ -1,14 +1,16 @@
 ---
 layout: post
-title: "pry pry pry"
+title: "Diving Deeper into Pry"
 date: 2015-12-17 18:30:20 -0500
 comments: true
 categories:
 ---
 
-Pry is an incredibly extensive and powerful tool to use while learning and writing Ruby, and the goal of this post is to explore (and collect into one location!) some of the lesser-used functionalities that I’ve found incredibly useful in learning ruby.
+As a baby developer, my first encounters with pry were nothing short of terrifying. But that fear soon turned to love, and an obsession with understanding and exploring the extensive functionalities of this incredibly powerful tool.
 
-Pry isn’t just for debugging - you can drop into pry from your terminal at any time simply by typing ‘pry’, and from there you are ready to begin experimenting! You can do anything you can do in irb in pry, only pry is better.
+This post explores only a few of the lesser-known tools pry provides, with an eye towards Ruby learners at the beginning of their journey. However, it does presume previous experience using pry breakpoints (`binding.pry`). If you haven't used it before, you may want to start with the resources at the bottom.
+
+However, pry isn’t just for debugging - you can drop into pry from your terminal at any time simply by typing ‘pry’, and from there you are ready to begin experimenting! You can do anything you can do in irb in pry (only pry is better).
 
 
 
@@ -72,6 +74,15 @@ By entering `show-source Class/instance.method`, pry pulls up the source of that
 Note that this show-source syntax is slightly different than the one utilized in the pry-doc calls - you put Class.method as opposed to Class#method.
 
 
+##MOVING IN AND OUT OF OBJECTS##
+Pry includes a 'cd' command that works almost identically to what we're used to in terminal, except that it allows us to move in and out of objects. Once you 'cd' into an object, that object becomes self until you 'cd' again, allowing you to directly call commands like 'ls' or any methods available to that object. Let's take a look:
+
+![using cd in pry](/images/pry/cd.png)
+
+Here we can see that we `cd` directly into an an instance of the dog class, and that from there `ls` gives us a list of variable and methods for that object as it is not self. Pry then allows us to `cd` directly into the instance variable `@id`, and we can receive a list of methods available for it. Just as in terminal, using `cd ..` will move us back up a single level, and we can now call the name method directly on our instance of the Dog class.
+
+Pry also helps you keep track of where you are and how many levels you have moved in the cursor the far left where it says: `pry(location):level>`
+
 
 ##QUICK TIPS##
 
@@ -81,9 +92,11 @@ Note that this show-source syntax is slightly different than the one utilized in
 
 The list given is for the current directory, not for an item in the code we are prying into.
 
-+ Have you been prying for too long and lost yourself? `whereami` will remind you where in the code you currently are. This is automatically executed when you open pry, but `whereami` follows any line plays you may have made, and also takes an optional parameter of the number of lines to show before or after your location.
++ Have you been prying for too long and lost yourself? `whereami` will remind you where in the code you currently are. This is automatically executed when you open pry, but `whereami` follows any line plays you may have made, and also takes an optional parameter of the number of lines to show before or after your location, as well as reminding you where in your file this code originates from.
 
+![using whereami in pry](/images/pry/whereami.png)
 
++ Use [prybaby](https://github.com/danvisintainer/prybaby) to automatically comment out all of the pry breakpoints in the directory you are working in. Simply run `gem install prybaby` to get started. Once it's installed, run `prybaby` in terminal to comment out your breakpoints. Use `prybaby -u` to uncomment all the breakpoints, and `prybaby -r` to delete them. (Beware though - it deletes the entire line containing the `binding.pry`.) Thanks Sophie for this recommendation!
 
 ##RESOURCES & FURTHER READING##
 
