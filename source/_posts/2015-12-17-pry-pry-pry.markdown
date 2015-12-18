@@ -10,8 +10,11 @@ Pry is an incredibly extensive and powerful tool to use while learning and writi
 
 Pry isn’t just for debugging - you can drop into pry from your terminal at any time simply by typing ‘pry’, and from there you are ready to begin experimenting! You can do anything you can do in irb in pry, only pry is better.
 
-PRY-DOC
-One of my personal favorite features of pry is actually a plugin called XXXpry-docXXX. To install this, simply enter the following into terminal:
+
+
+##PRY-DOC##
+
+One of my personal favorite features of pry is actually a plugin called [pry-doc](https://github.com/pry/pry-doc). To install this, simply enter the following into terminal:
 
 `gem install pry-doc`
 
@@ -33,7 +36,10 @@ You can also pull up examples of the source code for any method using `show-sour
 
 *Flatiron-specific note on using pry-doc: For some reason, pry-doc does NOT play well with learn. If you drop into pry from a directory containing a lab, or your binding.pry was in a lab, you will NOT be able to access the pry-doc. I’m honestly at a loss as to why this happens.*
 
-BUT WAIT… WHAT ABOUT METHODS I WROTE?
+
+
+##BUT WAIT… WHAT ABOUT METHODS I WROTE?##
+
 Glad you asked… because pry can tell you about those too!!!
 
 It’s a basic functionality of pry that using the command `ls` will allow you to see the methods that can be called on a given object. Below are three examples of how this can be implemented:
@@ -66,11 +72,21 @@ By entering `show-source Class/instance.method`, pry pulls up the source of that
 Note that this show-source syntax is slightly different than the one utilized in the pry-doc calls - you put Class.method as opposed to Class#method.
 
 
-QUICK TIPS
-	Accessing the terminal: Do you need to quickly do something in the terminal but don’t want to exit your pry session? Append a period to any command and it will get passed to the shell:
+
+##QUICK TIPS##
+
++ Accessing the terminal: Do you need to quickly do something in the terminal but don’t want to exit your pry session? Append a period to any command and it will get passed to the shell:
 
 ![using terminal from within pry](/images/pry/terminal.png)
 
-The list given is for the current directory, not for an item in the code we are prying into
+The list given is for the current directory, not for an item in the code we are prying into.
 
-	Have you been prying for too long and lost yourself? `whereami` will remind you where in the code you currently are. This is automatically executed when you open pry, but `whereami` follows any line plays you may have made, and also takes an optional parameter of the number of lines to show before or after
++ Have you been prying for too long and lost yourself? `whereami` will remind you where in the code you currently are. This is automatically executed when you open pry, but `whereami` follows any line plays you may have made, and also takes an optional parameter of the number of lines to show before or after your location.
+
+
+
+##RESOURCES & FURTHER READING##
+
++ [Pry Wiki](https://github.com/pry/pry/wiki)
++ [Rubyists, It’s Time to PRY Yourself Off IRB!](http://www.sitepoint.com/rubyists-time-pry-irb/)
++ [My Top 5 Pry Features](https://www.bignerdranch.com/blog/my-top-5-pry-features/)
