@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>pry pry pry - there be code here</title>
+  <title>Diving Deeper into Pry - there be code here</title>
   <meta name="author" content="Kaylee Knowles">
 
   
-  <meta name="description" content="Pry is an incredibly extensive and powerful tool to use while learning and writing Ruby, and the goal of this post is to explore (and collect into &hellip;">
+  <meta name="description" content="As a baby developer, my first encounters with pry were nothing short of terrifying. But that fear soon turned to love, and an obsession with &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -69,7 +69,7 @@
   
   <header>
     
-      <h1 class="entry-title">pry pry pry</h1>
+      <h1 class="entry-title">Diving Deeper into Pry</h1>
     
     
       <p class="meta">
@@ -92,9 +92,11 @@
   </header>
 
 
-<div class="entry-content"><p>Pry is an incredibly extensive and powerful tool to use while learning and writing Ruby, and the goal of this post is to explore (and collect into one location!) some of the lesser-used functionalities that I’ve found incredibly useful in learning ruby.</p>
+<div class="entry-content"><p>As a baby developer, my first encounters with pry were nothing short of terrifying. But that fear soon turned to love, and an obsession with understanding and exploring the extensive functionalities of this incredibly powerful tool.</p>
 
-<p>Pry isn’t just for debugging - you can drop into pry from your terminal at any time simply by typing ‘pry’, and from there you are ready to begin experimenting! You can do anything you can do in irb in pry, only pry is better.</p>
+<p>This post explores only a few of the lesser-known tools pry provides, with an eye towards Ruby learners at the beginning of their journey. However, it does presume previous experience using pry breakpoints (<code>binding.pry</code>). If you haven&rsquo;t used it before, you may want to start with the resources at the bottom.</p>
+
+<p>However, pry isn’t just for debugging - you can drop into pry from your terminal at any time simply by typing ‘pry’, and from there you are ready to begin experimenting! You can do anything you can do in irb in pry (only pry is better).</p>
 
 <h2>PRY-DOC</h2>
 
@@ -153,6 +155,16 @@
 
 <p>Note that this show-source syntax is slightly different than the one utilized in the pry-doc calls - you put Class.method as opposed to Class#method.</p>
 
+<h2>MOVING IN AND OUT OF OBJECTS</h2>
+
+<p>Pry includes a &lsquo;cd&rsquo; command that works almost identically to what we&rsquo;re used to in terminal, except that it allows us to move in and out of objects. Once you &lsquo;cd&rsquo; into an object, that object becomes self until you &lsquo;cd&rsquo; again, allowing you to directly call commands like &lsquo;ls&rsquo; or any methods available to that object. Let&rsquo;s take a look:</p>
+
+<p><img src="/images/pry/cd.png" alt="using cd in pry" /></p>
+
+<p>Here we can see that we <code>cd</code> directly into an an instance of the dog class, and that from there <code>ls</code> gives us a list of variable and methods for that object as it is not self. Pry then allows us to <code>cd</code> directly into the instance variable <code>@id</code>, and we can receive a list of methods available for it. Just as in terminal, using <code>cd ..</code> will move us back up a single level, and we can now call the name method directly on our instance of the Dog class.</p>
+
+<p>Pry also helps you keep track of where you are and how many levels you have moved in the cursor the far left where it says: <code>pry(location):level&gt;</code></p>
+
 <h2>QUICK TIPS</h2>
 
 <ul>
@@ -165,7 +177,14 @@
 <p>The list given is for the current directory, not for an item in the code we are prying into.</p>
 
 <ul>
-<li>Have you been prying for too long and lost yourself? <code>whereami</code> will remind you where in the code you currently are. This is automatically executed when you open pry, but <code>whereami</code> follows any line plays you may have made, and also takes an optional parameter of the number of lines to show before or after your location.</li>
+<li>Have you been prying for too long and lost yourself? <code>whereami</code> will remind you where in the code you currently are. This is automatically executed when you open pry, but <code>whereami</code> follows any line plays you may have made, and also takes an optional parameter of the number of lines to show before or after your location, as well as reminding you where in your file this code originates from.</li>
+</ul>
+
+
+<p><img src="/images/pry/whereami.png" alt="using whereami in pry" /></p>
+
+<ul>
+<li>Use <a href="https://github.com/danvisintainer/prybaby">prybaby</a> to automatically comment out all of the pry breakpoints in the directory you are working in. Simply run <code>gem install prybaby</code> to get started. Once it&rsquo;s installed, run <code>prybaby</code> in terminal to comment out your breakpoints. Use <code>prybaby -u</code> to uncomment all the breakpoints, and <code>prybaby -r</code> to delete them. (Beware though - it deletes the entire line containing the <code>binding.pry</code>.) Thanks Sophie for this recommendation!</li>
 </ul>
 
 
@@ -230,7 +249,7 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2015/12/17/pry-pry-pry/">pry pry pry</a>
+        <a href="/blog/2015/12/17/pry-pry-pry/">Diving Deeper into Pry</a>
       </li>
     
   </ul>
@@ -285,7 +304,7 @@
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/2015/12/17/pry-pry-pry/">pry pry pry</a>
+        <a href="/blog/2015/12/17/pry-pry-pry/">Diving Deeper into Pry</a>
       </li>
     
   </ul>
