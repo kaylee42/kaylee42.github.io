@@ -9,7 +9,7 @@
   <meta name="author" content="Kaylee Knowles">
 
   
-  <meta name="description" content="As a baby developer, my first encounters with pry were nothing short of terrifying. But that fear soon turned to love, and an obsession with &hellip;">
+  <meta name="description" content="OMG SELF JOINS Simply put, a self-join table allows us to join an instance of a class to another instance of the same class in a many-to-many &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -31,6 +31,7 @@
 <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<link href="prism.css" rel="stylesheet" />
 
   
 
@@ -59,6 +60,7 @@
 	  
 	</div>
 </div>
+<script src="prism.js"></script>
 
 </header>
   
@@ -66,6 +68,177 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/12/reflexive-self-joins-in-rails/">Reflexive Self Joins in Rails</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-12T06:56:20-05:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2>OMG SELF JOINS</h2>
+
+<p>Simply put, a self-join table allows us to join  an instance of a class to another instance of the same class in a many-to-many relationship. At first glance this is not so different from the more traditional join table used for has-many-through relationships, however because you cannot have two columns in the join table named <code>user_id</code>, implementing self joins requires some finagling.</p>
+
+<p>Perhaps the most common real-world example of needing a self-join table is in social networking, connecting users to users through friendships or following relationships. I set out to implement this in my recent Rails project, and became particularly interested in the different methods available for using self join tables to create reflexive relationships. This blog will walk through all of my steps, but will particularly focus on reflexivity options.</p>
+
+<h2>MIGRATION</h2>
+
+<p>Creating a self-join table migration can be done nearly the same as to any other join table. Similarly, you can use <code>t.references</code>. In this case, I am creating a friendships model where one column is for :user_id, and the other is for :friend_id, although both have the id of an instance of the User class.</p>
+
+<p>The main difference here is the way that the foreign key is added to the friend column. Because the two columns cannot both be named :user_id, and Rails will not automatically know which groups of foreign keys to check unless we explicitly tell it, this foreign key needs to be added outside of the create_table method. The example of the code is below, but it will always follow the format <code>add_foreign_key :join_table, :model_table, column: :second_name_id</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">CreateFriendships</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Migration</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">change</span>
+</span><span class='line'>    <span class="n">create_table</span> <span class="ss">:friendships</span> <span class="k">do</span> <span class="o">|</span><span class="n">t</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">t</span><span class="o">.</span><span class="n">references</span> <span class="ss">:user</span><span class="p">,</span> <span class="ss">index</span><span class="p">:</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">foreign_key</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'>      <span class="n">t</span><span class="o">.</span><span class="n">references</span> <span class="ss">:friend</span><span class="p">,</span> <span class="ss">index</span><span class="p">:</span> <span class="kp">true</span>
+</span><span class='line'>      <span class="n">t</span><span class="o">.</span><span class="n">timestamps</span> <span class="ss">null</span><span class="p">:</span> <span class="kp">false</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">add_foreign_key</span> <span class="ss">:friendships</span><span class="p">,</span> <span class="ss">:users</span><span class="p">,</span> <span class="ss">column</span><span class="p">:</span> <span class="ss">:friend_id</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>MODELS</h2>
+
+<p>Now that we’ve migrated our table correctly, it’s time to write our models! Our Friendship model looks pretty familiar - it belongs to a <code>:user</code> and a <code>:friend</code>. However, a <code>:friend</code> is actually an instance of the User class. Usually Rails uses magic to automatically associate these relationships using naming conventions, but we can override these conventions when needed. It’s even pretty easy! Just append <code>class_name “Class”</code> to any foreign key that’s not named after its class.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Friendship</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:user</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:friend</span><span class="p">,</span> <span class="ss">class_name</span><span class="p">:</span> <span class="s2">&quot;User&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The implementation in our model looks super familiar. No need to identify which class <code>:friends</code> belongs to, as that’s handled in the Friendship model.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:friendships</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:friends</span><span class="p">,</span> <span class="ss">through</span><span class="p">:</span> <span class="ss">:friendships</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now we can call <code>user.friends</code> to see what friends a given user has. However, as it stands our friends &amp; friendships leave something to be desired, as only the user identified in the <code>:user_id</code> column of our friendships table. Wouldn’t it be create if these relationships were more reflexive?</p>
+
+<h2>ONE DIRECTIONAL (Twitter Model)</h2>
+
+<p>One way to create reflexive relationships is what I think of as the Twitter model. These relationships are one-directional; a user can follow someone, and they can have followers, but those relationships are not mutual. In order to set up this relationship, we just need to add two lines of code to our previous User model:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">User</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:friendships</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:friends</span><span class="p">,</span> <span class="ss">through</span><span class="p">:</span> <span class="ss">:friendships</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:follows</span><span class="p">,</span> <span class="ss">class_name</span><span class="p">:</span> <span class="s2">&quot;Friendship&quot;</span><span class="p">,</span> <span class="ss">foreign_key</span><span class="p">:</span> <span class="s2">&quot;friend_id&quot;</span>
+</span><span class='line'>  <span class="n">has_many</span> <span class="ss">:followers</span><span class="p">,</span> <span class="ss">through</span><span class="p">:</span> <span class="ss">:follows</span><span class="p">,</span> <span class="ss">source</span><span class="p">:</span> <span class="ss">:user</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What’s going on here? Let’s break it down. In line 5, we are defining a relationship to the friendships table that goes in the opposite direction. I’ve named it <code>:follows</code>, so the first thing we have to do is override Rails naming conventions to direct it to the proper class (Friendship), which we’ve seen before. But what about this <code>:foreign_key</code> business? Again, all we’re doing here is making explicit something that is implicit in Rails in order to override naming conventions. In a has_many relationship, it is assumed that the foreign key will be named after the class we’re in. However, in this case, we actually want to refer to the other side of that relationship - the <code>:friend_id</code>.</p>
+
+<p>Line 6 is also fairly familiar - we just define <code>:followers</code> through the <code>:follows</code> relationship with just made. However, we again need to override our Rails naming conventions using source. This refers not to the name of the class, but the way the column is named in your join table - so just make it the opposite of whatever you defined as your foreign key in the previous line. Now we can call <code>user.followers</code> and see who has followed a give user!</p>
+
+<h2>MUTUAL (Facebook Model)</h2>
+
+<p>The second major way I found to create reflexive relationships is mutual - or what I think of as the Facebook model. In other words, if you friend someone, they also become friends with you. The easiest way I found to do this involved using callback methods.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Friendship</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:user</span>
+</span><span class='line'>  <span class="n">belongs_to</span> <span class="ss">:friend</span><span class="p">,</span> <span class="ss">class_name</span><span class="p">:</span> <span class="s2">&quot;User&quot;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">after_create</span> <span class="ss">:create_inverse</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">create_inverse</span>
+</span><span class='line'>    <span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">user_id</span><span class="p">:</span> <span class="nb">self</span><span class="o">.</span><span class="n">friend</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="ss">friend_id</span><span class="p">:</span> <span class="nb">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">validates_uniqueness_of</span> <span class="ss">:user_id</span><span class="p">,</span> <span class="ss">scope</span><span class="p">:</span> <span class="ss">:friend_id</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is actual pretty simply. All that’s happening is that a callback is being implemented in line 5 immediately after a new friendship is created. It simply calls the <code>:create_inverse</code> method which creates a second instance of the Friendship class with an inverse relationship to the original, guaranteeing that both users will be in each other’s collection of friends.</p>
+
+<p>We avoid getting into an infinite creation loop because of uniqueness validation in line 11, which will validates for the uniqueness of <code>:user_id</code> as it relates to the scope of <code>:friend_id</code>.</p>
+
+<p>Note: for some reason this works for me when implemented on my website, but does NOT work in the rails console.</p>
+
+<h2>RESOURCES</h2>
+
+<ul>
+<li><a href="http://railscasts.com/episodes/163-self-referential-association?view=asciicast">Railscasts: Self-Referential Association</a></li>
+<li><a href="http://collectiveidea.com/blog/archives/2015/07/30/bi-directional-and-self-referential-associations-in-rails/">Bi-Directional and Self-Referential Associations in Rails</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -215,7 +388,7 @@
     </div>
   </div>
   <!-- <footer role="contentinfo"><p>
-  Copyright &copy; 2015 - Kaylee Knowles -
+  Copyright &copy; 2016 - Kaylee Knowles -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
 </p>
 
@@ -252,6 +425,10 @@
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2016/01/12/reflexive-self-joins-in-rails/">Reflexive Self Joins in Rails</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/12/17/pry-pry-pry/">Diving Deeper into Pry</a>
       </li>
     
@@ -259,7 +436,7 @@
 </section>
   <div class="footer_in_sidebar">
     <p>
-    Copyright &copy; 2015
+    Copyright &copy; 2016
     </p>
 </div>
 
