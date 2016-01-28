@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://kaylee42.github.io/blog/2016/01/27/understanding-jquery-and-the-dom/</loc>
+    <lastmod>2016-01-27T09:29:41-05:00</lastmod>
+  </url>
+  <url>
     <loc>http://kaylee42.github.io/blog/2016/01/12/reflexive-self-joins-in-rails/</loc>
     <lastmod>2016-01-12T06:56:20-05:00</lastmod>
   </url>
@@ -9,10 +13,10 @@
     <lastmod>2015-12-17T18:30:20-05:00</lastmod>
   </url>
   <url>
-    <loc>http://kaylee42.github.io/blog/archives/</loc>
+    <loc>http://kaylee42.github.io/archives/</loc>
   </url>
   <url>
-    <loc>http://kaylee42.github.io/archives/</loc>
+    <loc>http://kaylee42.github.io/blog/archives/</loc>
   </url>
   <url>
     <loc>http://kaylee42.github.io/blog/</loc>

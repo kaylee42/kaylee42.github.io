@@ -9,7 +9,7 @@
   <meta name="author" content="Kaylee Knowles">
 
   
-  <meta name="description" content="OMG SELF JOINS Simply put, a self-join table allows us to join an instance of a class to another instance of the same class in a many-to-many &hellip;">
+  <meta name="description" content="As someone whose first programming language was Ruby, the transition into JavaScript was rocky, to say the least. But after a week of near-constant &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -68,6 +68,181 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/01/27/understanding-jquery-and-the-dom/">Understanding jQuery &amp; the DOM</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-01-27T09:29:41-05:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>As someone whose first programming language was Ruby, the transition into JavaScript was rocky, to say the least. But after a week of near-constant rage fueled by missing the 16th closing curly brace and forgetting that my functions won’t do shit unless I call them, I think I’m starting to come to terms with JavaScript, and maybe even… like it a little? And that’s all thanks to jQuery, because jQuery just makes everything in JS so much easier and better, especially when interacting with the DOM.</p>
+
+<p>But I definitely didn’t feel that way at first. No, at first the way I felt about jQuery was more or less: WTF are all these frigging $ about? Why did all these things I learned in regular ol’ JavaScript suddenly stop working? Why aren’t these effing jQuery methods working when I think they should? And WTF are DOM elements anyway?!?!?</p>
+
+<p>&hellip; I think I get it now. So the following is the first of two posts documenting how I found the answer to what may seem (at least to those more familiar with JavaScript than I) a fairly basic question: What the hell does it mean when someone tells you that a jQuery object is an array-like collection of DOM elements? This post assumes you have basic experience with HTML, CSS, and JavaScript, but not much else.</p>
+
+<h2>THE DOM</h2>
+
+<p>Let’s start at the beginning: What on earth is the DOM? I had a vague understanding of the DOM as like… something in the browser… that uses HTML? But that didn’t really seem good enough. So I found the official definition from the <a href="https://www.w3.org/DOM/">World Wide Web Consortium</a>, the group that maintains standards for the DOM:</p>
+
+<blockquote><p>The Document Object Model is a platform- and language-neutral interface that will allow programs and scripts to dynamically access and update the content, structure and style of documents. The document can be further processed and the results of that processing can be incorporated back into the presented page.</p></blockquote>
+
+<p>Well, thanks for nothing, W3C. Luckily, other definitions of the DOM exist out there, and have led me to this understanding of a few keys points:</p>
+
+<ul>
+<li>The DOM is a <strong>standard model</strong>, so it is interpreted the same regardless of browser or language.</li>
+<li>The DOM allows us to access and interact with <strong>HTML elements as objects</strong> (it is object-oriented).</li>
+<li>The DOM connects web pages to our scripts by providing a <strong>structured representation</strong> of those objects.</li>
+</ul>
+
+
+<p>In other words, the DOM facilitates our access to HTML elements by representing them as objects, and allowing us to use JavaScript (or another language) to easily access and manipulate that HTML. Let’s take a closer look at what that means for us as programmers.</p>
+
+<p><em>Note: The DOM isn’t only for HTML (it also has models for XML and the Core DOM) but those aren’t important for the purposes of this post.</em></p>
+
+<h2>DOM ELEMENTS AND JAVASCRIPT</h2>
+
+<p>Here’s a visual representation of what the hell is going on in the DOM:
+<img src="/images/jquerydom/pic_htmltree.gif" alt="DOM tree" /></p>
+
+<p>Source: <a href="http://www.w3schools.com/js/js_htmldom.asp">W3 Schools</a></p>
+
+<p>All of those boxes represent different kinds of <a href="https://www.w3.org/TR/DOM-Level-2-Core/core.html#ID-1950641247">nodes</a>, which are the primary datatypes used by the DOM. In other words, nodes are the friendly little objects that the DOM turns our HTML into! There are a bunch of different node types, only a few of which are represented here, but we’re primarily interested in the <code>element</code> type, because this is primarily what we’ll be calling on in both JavaScript and jQuery methods. (There is limited support for other nodes like <code>text</code> and <code>comment</code> in SOME methods, but their use is not encouraged.)</p>
+
+<p>What is a DOM element exactly? Easy: if you write it in an HTML tag, it’s an element. Here’s some elements:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;body&gt;&lt;/body&gt;</span> <span class="c">&lt;!--woah it&#39;s an element!--&gt;</span>
+</span><span class='line'><span class="nt">&lt;h1&gt;</span>RAWR<span class="nt">&lt;/h1&gt;</span> <span class="c">&lt;!--omg another one!--&gt;</span>
+</span><span class='line'><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">&quot;magic&quot;</span><span class="nt">&gt;</span>OMG MAGIX<span class="nt">&lt;/div&gt;</span> <span class="c">&lt;!--elements for everyone!--&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The DOM standard allows us to use JavaScript to grab these elements and operate on them.</p>
+
+<p>In vanilla JavaScript, we access the <code>document</code> object (the node which encapsulates every other node) in order to find a specific DOM element. So, for instance, if we were looking for a <code>div</code> with an id of <code>pterodactyl</code>, we could use the following:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">awesome</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;pterodactyl&quot;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and <code>awesome</code> now contains the pterodactyl <code>div</code> we were looking for. There are a <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document#Methods">bunch of other JavaScript methods</a> like this for working directly with DOM elements, but honestly you should probably never use them because jQuery.</p>
+
+<h2>JQUERY OBJECTS</h2>
+
+<p>jQuery is just a JavaScript library that makes your life way better. jQuery objects are like DOM elements only way better. No really, they are pretty much exactly the same (only better). jQuery objects are infinitely easier to work with than DOM elements in their pure form and give us access to a plethora of <a href="https://api.jquery.com/category/manipulation/">super handy jQuery methods</a> that do things like allowing us to create animation and alter HTML at runtime. jQuery objects just provide a wrapper object that go around either a single DOM element or a collection of DOM elements, allowing us to use those methods.</p>
+
+<p>There are way too many jQuery methods to go into here, but what I do want to explore are the ways available to get ahold of the jQuery object. The simplest is just to take a pre-existing DOM element and wrap it. That syntax looks like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="kd">var</span> <span class="nx">element</span> <span class="o">=</span> <span class="s2">&quot;&lt;p&gt;Hey there!&lt;/p&gt;&quot;</span>
+</span><span class='line'><span class="nx">$</span><span class="p">(</span><span class="nx">element</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So that’s what all the $$$ is about! The <code>$()</code> syntax is just sugar for <code>jQuery()</code> - the jQuery wrapper object. As soon as we wrap the DOM element (or an array of DOM elements), we have access to all of the jQuery methods. The most common way you’ll see this implementation of getting a jQuery object is wrapping <code>$(this)</code> (demonstrated below), because usually you’ll want to get hold of jQuery objects using selectors.</p>
+
+<p>Luckily, turns out this is also SUPER EASY. Just grab <a href="http://www.w3schools.com/cssref/css_selectors.asp">your favorite CSS selectors cheatsheet</a> and dive on in! Here are a few examples of how this would be implemented:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;h1&#39;</span><span class="p">)</span> <span class="c1">// selects all h1 elements</span>
+</span><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#rainbows&#39;</span><span class="p">)</span> <span class="c1">// selects the element with an ID of rainbow</span>
+</span><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;a[href^=&quot;https&quot;]&#39;</span><span class="p">)</span> <span class="c1">// selects all a elements with an href attribute beginning with &quot;https&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You can create any combination and use any CSS selectors you like. If you check it out in the console, the jQuery object you get back will look like this:
+<img src="/images/jquerydom/objects.png" alt="jQuery objects" />
+In the first example I’ve selected all the elements with a class of <code>list</code>. I got three objects back, and we can see that it’s not just the tags, but all of the element’s attributes and children. The console allows you to expand and contract your view of the children.</p>
+
+<p>In the second example I selected the object with an ID of <code>wrapper</code>. Note that even though it’s only a single object, is still comes with brackets around it - this array-like notation is an indication that the DOM element is wrapped in a jQuery object. (BUT NEVER FORGET THIS IS NOT AN ACTUAL ARRAY - see part two.)</p>
+
+<p>A third, less common way to create a jQuery object is by wrapping an entire HTML string that does not yet exist on the page. This is less common largely because (to my understanding) it has a much more limited use case. You would want to do this primarily if you needed to call another method or act on the new object after you add it to the page. Here is an example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;&lt;li&gt;dance party&lt;/li&gt;&#39;</span><span class="p">).</span><span class="nx">appendTo</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;ul#funtimes&#39;</span><span class="p">)).</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;click&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">hide</span><span class="p">()</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we actually get so see ALL THREE of the jQuery object method syntaxes we’ve gone over. Let’s take it step by step. On line one we make a jQuery object by wrapping an HTML string that will add the item &ldquo;dancy party&rdquo; to a list. My making this HTML string into a jQuery object we gain access to the <code>appendTo()</code> method. As an argument to this method we use a jQuery object that we create through the use of CSS selectors (it’s the <code>&lt;ul&gt;</code> with an id of funtimes).</p>
+
+<p>Great! Our list item is now appended. But we want to be able to hide it on a click (though like, why would you want to hide a dance party?) Luckily we can call the <code>on()</code> method and, thanks to some jQuery magic, have access to a <code>this</code> that isn’t the goddamn window. On line two we see the first method we talked about, directly wrapping up a DOM element (in this case <code>this</code>), which is the first jQuery object - the new string. And this is also why we constructed our first object directly from a string rather than doing the reverse formation:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;ul#funtimes&#39;</span><span class="p">).</span><span class="nx">append</span><span class="p">(</span><span class="s1">&#39;&lt;li&gt;dance party&lt;/li&gt;&#39;</span><span class="p">).</span><span class="nx">on</span><span class="p">(</span><span class="s1">&#39;click&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="k">this</span><span class="p">).</span><span class="nx">hide</span><span class="p">()</span> <span class="c1">// this isn’t what you think it is</span>
+</span><span class='line'><span class="p">})</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If we had formulated it this way, when we referenced <code>this</code> we would have been accessing the <code>ul</code>, not the new list item we appended, and clicking would have hid the entirety of the list rather than the specific list item.</p>
+
+<h2>FEELING GOOD?</h2>
+
+<p>Hopefully by now you’ve got a grasp on what it means for something to be a jQuery object! But there’s plenty of quirks still to explore, so check out (the hopefully shorter) part two where we explore such fascinating topics as:
+Why the hell isn’t this acting like an array?
+Dammit, now I need to get the plain DOM element back.
+What’s going on with <code>this</code> anyway?</p>
+
+<h2>RESOURCES</h2>
+
+<h3>THE DOM</h3>
+
+<ul>
+<li><a href="http://www.w3schools.com/js/js_htmldom.asp">W3 Schools: JavaScript HTML DOM</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction">MDN: Introduction to the DOM</a></li>
+</ul>
+
+
+<h3>JQUERY</h3>
+
+<ul>
+<li><a href="https://api.jquery.com/jquery/">jQuery API: jQuery()</a></li>
+<li><a href="https://learn.jquery.com/using-jquery-core/jquery-object/">The jQuery Object</a></li>
+<li><a href="https://www.smashingmagazine.com/2014/05/mystery-jquery-object-syntax-basic-introduction/">The Mystery of the jQuery Object: A Basic Introduction</a></li>
+<li><a href="http://howtodoinjava.com/scripting/jquery/javascript-dom-objects-vs-jquery-objects/">Working with JavaScript DOM Objects vs. jQuery Objects</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -231,6 +406,7 @@
 <ul>
 <li><a href="http://railscasts.com/episodes/163-self-referential-association?view=asciicast">Railscasts: Self-Referential Association</a></li>
 <li><a href="http://collectiveidea.com/blog/archives/2015/07/30/bi-directional-and-self-referential-associations-in-rails/">Bi-Directional and Self-Referential Associations in Rails</a></li>
+<li><a href="http://guides.rubyonrails.org/association_basics.html#self-joins">Rails Guides - Association Basics</a></li>
 </ul>
 
 </div>
@@ -423,6 +599,10 @@
       <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/01/27/understanding-jquery-and-the-dom/">Understanding jQuery &amp; the DOM</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2016/01/12/reflexive-self-joins-in-rails/">Reflexive Self Joins in Rails</a>
