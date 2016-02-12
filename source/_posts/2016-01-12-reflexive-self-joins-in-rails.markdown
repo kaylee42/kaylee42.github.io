@@ -106,3 +106,4 @@ Note: for some reason this works for me when implemented on my website, but does
 ##RESOURCES##
 + [Railscasts: Self-Referential Association](http://railscasts.com/episodes/163-self-referential-association?view=asciicast)
 + [Bi-Directional and Self-Referential Associations in Rails](http://collectiveidea.com/blog/archives/2015/07/30/bi-directional-and-self-referential-associations-in-rails/)
++ [Rails Guides - Association Basics](http://guides.rubyonrails.org/association_basics.html#self-joins)
