@@ -4,7 +4,7 @@
   <title><![CDATA[there be code here]]></title>
   <link href="http://kaylee42.github.io/atom.xml" rel="self"/>
   <link href="http://kaylee42.github.io/"/>
-  <updated>2016-01-28T10:51:34-05:00</updated>
+  <updated>2016-02-11T22:45:55-05:00</updated>
   <id>http://kaylee42.github.io/</id>
   <author>
     <name><![CDATA[Kaylee Knowles]]></name>
@@ -12,6 +12,217 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Intro to the jQuery Validation Plugin]]></title>
+    <link href="http://kaylee42.github.io/blog/2016/02/11/intro-to-the-jquery-validation-plugin/"/>
+    <updated>2016-02-11T22:18:44-05:00</updated>
+    <id>http://kaylee42.github.io/blog/2016/02/11/intro-to-the-jquery-validation-plugin</id>
+    <content type="html"><![CDATA[<p>So I’m a little bit in love with the <a href="http://jqueryvalidation.org/">jQuery Validation Plugin</a>. It provides easy, immediate validation on forms, analyzing user input as they type and providing instant feedback on validation failures in addition to preventing a form from submitting if it contains any invalid data. However, I found the <a href="http://jqueryvalidation.org/documentation/">documentation</a> a little lacking, especially for a JavaScript/jQuery beginner like myself. So I wanted to share a step-by-step implementation guide with a focus on customization. Here’s an example of it in action on <a href="https://romp.herokuapp.com/">Romp</a>, a social networking application I built with <a href="https://github.com/eaud/">@eaud</a> and <a href="https://github.com/jappleba/">@japplaba</a> in Rails along with jQuery and AJAX:</p>
+
+<iframe width="420" height="315" src="https://www.youtube.com/embed/96TPLC96DGw" frameborder="0" allowfullscreen></iframe>
+
+
+<h2>DOWNLOAD &amp; INCLUDE IT</h2>
+
+<p>Okay, this probably seems ridiculously basic, but this was the first jQuery plugin I’d ever installed! It’s available on the <a href="http://jqueryvalidation.org/">jQuery Validation website</a>. Note that the zip file you download includes a demo and a whole mess of other files, but the one you actually need is <code>jquery.validate.js</code> inside of the <code>dist</code> folder (you may need some of the other files in this folder depending on how complex you’re getting, but this was all I used). If you’re not using Rails, be sure you’ve also included jQuery in your app. If you are using Rails, the manifest includes it for you.</p>
+
+<p>In Rails, all you have to do is pop the <code>jquery.validate.js</code> into <code>/app/assets/javascripts</code> and the manifest file will require it for you. In case you aren’t familiar with it, the manifest file is at <code>application.js</code> and under NO condition should you delete the comments!! The special <code>//=</code> notation is requiring those files for you, and the <code>//= require_tree .</code> is what requires everything in the folder, grabbing you jQuery validation plugin you just included.</p>
+
+<p>You can include your validation code in any file in the <code>javascripts</code> folder, just be sure to change the extensions from <code>.coffee</code> to <code>.js</code>. Rails will automatically compile of your scripts into a single file to be uploaded into your application.</p>
+
+<h2>FIND YOUR FORM</h2>
+
+<p>If you’re like me you’re going to customize everything about your validations, so that’s how I’m going to walk through this. There are shorter, less customizable options available, and I would recommend checking out <a href="https://youtu.be/yaxUV3Ib4vM">this video</a> if you’re interested in that option.</p>
+
+<p>The first thing to do is select the form you’ll be validating using a <a href="https://kaylee42.github.io/blog/2016/01/27/understanding-jquery-and-the-dom/">jQuery object</a>, and make sure it’ll be called when the document is ready, for instance:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="nb">document</span><span class="p">).</span><span class="nx">ready</span><span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
+</span><span class='line'>    <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#activityForm&quot;</span><span class="p">).</span><span class="nx">validate</span><span class="p">()</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>.validate()</code> method comes with the plugin and we’ll flesh it out in just a second. Note that if you are using Rails form helpers, you can customize the <code>id</code> attribute in the html hash like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&lt;%=</span> <span class="n">form_for</span><span class="p">(</span><span class="vi">@activity</span><span class="p">,</span> <span class="ss">html</span><span class="p">:</span> <span class="p">{</span><span class="nb">id</span><span class="p">:</span> <span class="s1">&#39;activityForm&#39;</span><span class="p">})</span> <span class="k">do</span> <span class="o">|</span><span class="n">f</span><span class="o">|</span> <span class="o">%&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>.validate()</code> takes an argument of a hash which will dictate what validations are run and what messages are provided, and allow for the customization of error messages and more. Let’s take a look.</p>
+
+<h2>WRITE YOUR RULES</h2>
+
+<p>First and most importantly we need to decide what we’ll be validating. Take a look at this example validation hash:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#activityForm&quot;</span><span class="p">).</span><span class="nx">validate</span><span class="p">({</span>
+</span><span class='line'>    <span class="nx">rules</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">title</span><span class="o">:</span> <span class="err">“</span><span class="nx">required</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>      <span class="s2">&quot;activity[name]&quot;</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">required</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">minlength</span><span class="o">:</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">maxlength</span><span class="o">:</span> <span class="mi">60</span>
+</span><span class='line'>      <span class="p">},</span>
+</span><span class='line'>      <span class="s2">&quot;activity[guest_min]&quot;</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">required</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">digits</span><span class="o">:</span> <span class="kc">true</span>
+</span><span class='line'>      <span class="p">},</span>
+</span><span class='line'>      <span class="s2">&quot;activity[guest_max]&quot;</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">required</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">digits</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">greaterThanMin</span><span class="o">:</span> <span class="kc">true</span>
+</span><span class='line'>      <span class="p">},</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we can see a few different options for declaring our validations. Note that validations are called on the <code>name</code> attribute for your form input. If you are using Rails, you should NOT customize the names of your form inputs (even though you can) - it will completely throw off ActiveRecord and prevent you from utilizing mass assignment from the <code>params</code> hash. If you aren’t sure what <code>form_for</code> or <code>form_tag</code> generated as a name attribute for you, I’d recommend using the <a href="https://developer.chrome.com/devtools">Chrome Developer Tools</a> to inspect each element and copy the name attribute directly into your validations hash. Note above that non-nested names can simply be written as symbols, while nested names need to be wrapped in quotes like so: <code>"activity[tags][]"</code></p>
+
+<p>If all you need to do is check that any sort of input was entered for a given field, you can simply write <code>field_name: “required”</code>. Easy!! But if you want to do anything more than that, you include a hash of different requirements as demonstrated in the example above. There are way more examples than provided here, and you can find some of them <a href="http://jqueryvalidation.org/category/methods/">here</a>. (I’ve yet to find a comprehensive list of every method available, so if you have one please let me know! If you feel like it’s a validation method that should exist, just Google it and it’ll probably come up.) The ones I’ve included should all be pretty self-explanatory, with the exception of the last one, <code>greaterThanMin</code>.</p>
+
+<p>This is a custom method we wrote to ensure that the maximum number would be greater than or equal to the minimum. Here’s what it looks like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">jQuery</span><span class="p">.</span><span class="nx">validator</span><span class="p">.</span><span class="nx">addMethod</span><span class="p">(</span><span class="s2">&quot;greaterThanMin&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">value</span><span class="p">,</span> <span class="nx">element</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">optional</span><span class="p">(</span><span class="nx">element</span><span class="p">)</span> <span class="o">||</span> <span class="p">(</span><span class="nb">parseFloat</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nx">$</span><span class="p">(</span><span class="s1">&#39;#activity_guest_min&#39;</span><span class="p">).</span><span class="nx">val</span><span class="p">());</span>
+</span><span class='line'><span class="p">},</span> <span class="s2">&quot;* Amount must be greater than min guests&quot;</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let’s break down what’s happening here. <code>jQuery.validator.addMethod()</code> comes with the plugin and allows us to write our own custom methods. Yay! We then pass in three arguments: the name of our method (as a string), the validation method (a function), and a default error message (again a string). Both the name and error message are simply strings (and the error message is only a default - we’ll go over how to override them in the next section). But let’s talk more about what’s going on in the function.</p>
+
+<p>The function should take two arguments - <code>value</code> and <code>element</code>. <code>value</code> is the same as what you’d get if you called <code>.val()</code> on the form input (it’s whatever the user typed). <code>element</code> is something that you won’t need to manipulate, but you DO need to include it in order to have the first half of the conditional: <code>this.optional(element)</code>. You should DEFINITELY maintain this conditional format when writing your own methods. Basically, <code>this.optional(element)</code> will evaluate to true if <code>element == undefined</code>, so the custom validation will never be run if nothing is entered. This is good as it allows you to make the input required separately, both making this method more flexible and providing more accurate error messages to users. So you just write your custom method in the bit after the <code>||</code> - in our case checking to ensure that <code>value</code> is greater than the minimum value entered.</p>
+
+<h2>WRITE YOUR ERRORS</h2>
+
+<p>All validation methods come with default error messages - however they tend to be pretty bland. All required fields will automatically return the error “This field is required.” More specific rules do provide more specific information, like “Please enter at least 2 characters,” but you may want something fancier than that. Luckily custom error messages are SUPER EASY to write. In your <code>.validate()</code> hash, immediately below all of the rules, just include something like this (rules cut out for brevity):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#activityForm&quot;</span><span class="p">).</span><span class="nx">validate</span><span class="p">({</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="nx">rules</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>   <span class="p">...</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>    <span class="nx">errors</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>      <span class="nx">title</span><span class="o">:</span> <span class="err">“</span><span class="nx">Hey</span><span class="p">,</span> <span class="nx">you</span> <span class="nx">need</span> <span class="nx">a</span> <span class="nx">title</span><span class="o">!</span><span class="err">”</span><span class="p">,</span>
+</span><span class='line'>      <span class="s2">&quot;activity[name]&quot;</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">required</span><span class="o">:</span> <span class="s2">&quot;Your activity must have a name, silly!&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">minlength</span><span class="o">:</span> <span class="s2">&quot;One letter isn&#39;t a name...&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">maxlength</span><span class="o">:</span> <span class="s2">&quot;Keep it short &amp; sweet.&quot;</span>
+</span><span class='line'>      <span class="p">},</span>
+</span><span class='line'>      <span class="s2">&quot;activity[guest_min]&quot;</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>       <span class="nx">required</span><span class="o">:</span> <span class="s2">&quot;Let us know how many people can come!&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">digits</span><span class="o">:</span> <span class="s2">&quot;It&#39;s gotta be a number&quot;</span>
+</span><span class='line'>      <span class="p">},</span>
+</span><span class='line'>      <span class="s2">&quot;activity[guest_max]&quot;</span><span class="o">:</span> <span class="p">{</span>
+</span><span class='line'>        <span class="nx">required</span><span class="o">:</span> <span class="s2">&quot;Let us know how many people can come!&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">digits</span><span class="o">:</span> <span class="s2">&quot;It&#39;s gotta be a number&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="nx">greaterThanMin</span><span class="o">:</span> <span class="s2">&quot;Must be greater than or equal to minimum guest number&quot;</span>
+</span><span class='line'>      <span class="p">},</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So, so easy. Just create a hash that’s identical to your rules hash, and replace the constraints with the error message you would like to appear. If you skip any no worries, the default messages will still show up.</p>
+
+<p>By default error messages will show up immediately after the input, but you can change this! (There are other customizations available which you can check out <a href="http://jqueryvalidation.org/validate/">here</a> - this is the only one I’ll cover). We ran into an issue where the placement of the error message with our checkboxes was really messy. However, customizing it was pretty easy. Here’s what we did to move the error message from the bottom to the top:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'>  <span class="nx">$</span><span class="p">(</span><span class="s2">&quot;#activityForm&quot;</span><span class="p">).</span><span class="nx">validate</span><span class="p">({</span>
+</span><span class='line'>    <span class="nx">errorPlacement</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">error</span><span class="p">,</span><span class="nx">element</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="nx">element</span><span class="p">.</span><span class="nx">attr</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;activity[tag_ids][]&quot;</span><span class="p">){</span>
+</span><span class='line'>        <span class="nx">error</span><span class="p">.</span><span class="nx">insertAfter</span><span class="p">(</span><span class="nx">$</span><span class="p">(</span><span class="s2">&quot;.tag-checkboxes&quot;</span><span class="p">));</span>
+</span><span class='line'>      <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+</span><span class='line'>        <span class="nx">error</span><span class="p">.</span><span class="nx">insertAfter</span><span class="p">(</span><span class="nx">element</span><span class="p">);</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="p">},</span>
+</span><span class='line'>  <span class="nx">rules</span><span class="o">:</span> <span class="p">{...},</span>
+</span><span class='line'>  <span class="nx">errors</span><span class="o">:</span> <span class="p">{...}</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see, the custom <code>errorPlacement</code> is just popped into the beginning of our validation hash (rules and errors cut for brevity). It takes two arguments: <code>error</code> and <code>element</code>. It’s important to use an if statement in your function call unless you’d like to change the placement of all of your error messages. In the if statement, use <code>element.attr("name")</code> to find the specific input element that you would like to adjust error placement for. Then you can use jQuery’s <code>.insertAfter()</code> or <code>.insertBefore()</code> (or really whatever you’d like) to customize the error placement. Be sure to include an else statement containing <code>error.insertAfter(element);</code> in order to maintain the default error placement for all other error messages.</p>
+
+<h2>BONUS ROUND</h2>
+
+<p>jQuery Validate plays super well with HTML5 form validation, which means that validation on new input types like URL and email are automatically run, saving you the headache of writing long obnoxious RegExps. Note that in order for this to happen jQuery Validate automatically adds <code>novalidate="novalidate"</code> to your form tag - don’t freak out, this just prevents the HTML5 validations from being run in lieu of the jQuery Validate functions.</p>
+
+<p>Customizing the way errors appears is also incredibly easy. They’ll automatically just be standard text, but you can customize the text’s appearance by adding CSS to the <code>error</code> class. Here’s what we used to create the errors shown above:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='css'><span class='line'><span class="nc">.error</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">color</span><span class="o">:</span> <span class="m">#E4003D</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">font-style</span><span class="o">:</span> <span class="k">italic</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Simple, right? Hope this was a helpful guide to getting started with jQuery Validate. Please remember that even though these validations prevent a form from submitting if it contains bad data, it’s still best practice to include validations on your database as well to ensure that no bad data gets in! If you’d like to see the complete code from the example at the top, you can check it out on our <a href="https://github.com/eaud/BookItList/blob/master/app/assets/javascripts/xform_validations.js">GitHub repo</a>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Understanding jQuery &amp; the DOM]]></title>
