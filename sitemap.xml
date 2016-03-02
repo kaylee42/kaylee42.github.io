@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://kaylee42.github.io/blog/2016/03/01/node-trees-and-ruby-dot-dot-dot/</loc>
+    <lastmod>2016-03-01T20:44:34-05:00</lastmod>
+  </url>
+  <url>
     <loc>http://kaylee42.github.io/blog/2016/02/11/intro-to-the-jquery-validation-plugin/</loc>
     <lastmod>2016-02-11T22:18:44-05:00</lastmod>
   </url>

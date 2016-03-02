@@ -9,7 +9,7 @@
   <meta name="author" content="Kaylee Knowles">
 
   
-  <meta name="description" content="So I’m a little bit in love with the jQuery Validation Plugin. It provides easy, immediate validation on forms, analyzing user input as they type and &hellip;">
+  <meta name="description" content="&hellip;Don’t really mix. I started playing around today trying to build a node tree after getting an interview question about how I would build a &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -68,6 +68,207 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/03/01/node-trees-and-ruby-dot-dot-dot/">Node Trees and Ruby...</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-03-01T20:44:34-05:00" pubdate data-updated="true"></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>&hellip;Don’t really mix. I started playing around today trying to build a node tree after getting an interview question about how I would build a spell-checker (short answer: node trees) and became curious about how one would go about building the tree itself from scratch. The result I came up with is certainly not a perfect node tree, but it does build a structure that could be traversed letter by letter to check if a given word is in the dictionary. If you’re interested in actually implementing a node-based tree data structure in your Ruby program, I’d recommend checking out the <a href="https://github.com/evolve75/RubyTree">RubyTree gem</a>.</p>
+
+<h2>THE CODE</h2>
+
+<p>First things first: build the <code>Node</code> class:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Node</span>
+</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:letter</span>
+</span><span class='line'>  <span class="kp">attr_accessor</span> <span class="ss">:word_end</span><span class="p">,</span> <span class="ss">:children</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">letter</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@letter</span> <span class="o">=</span> <span class="n">letter</span>
+</span><span class='line'>    <span class="vi">@word_end</span> <span class="o">=</span> <span class="kp">false</span>
+</span><span class='line'>    <span class="vi">@children</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I initialize each <code>Node</code> based on the letter it’s tracking. The <code>@word_end</code> variable keeps track of whether a given node represents a valid end to a word (so that if you were traversing a path that included the word “hearts” the following would represent valid end points for your word:  “e”, “r”, “t”, and “s”). This defaults to <code>false</code> and is overridden if the node can be the last letter in a word. Finally, the <code>@children</code> hash tracks all of this node’s child nodes.</p>
+
+<p>To actually build the node tree, I built a <code>DictionaryTree</code> class which would initializes with an array of words and then converts that array into a node tree:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">DictionaryTree</span>
+</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:word_array</span>
+</span><span class='line'>  <span class="kp">attr_accessor</span> <span class="ss">:word_tree</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">word_array</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@word_array</span> <span class="o">=</span> <span class="n">word_array</span>
+</span><span class='line'>    <span class="vi">@word_tree</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span class='line'>    <span class="n">make_tree</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">make_tree</span>
+</span><span class='line'>    <span class="n">word_array</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">word</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">current_hash</span> <span class="o">=</span> <span class="n">word_tree</span>
+</span><span class='line'>      <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span class='line'>      <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">word</span><span class="o">.</span><span class="n">length</span>
+</span><span class='line'>        <span class="k">if</span> <span class="o">!</span><span class="n">current_hash</span><span class="o">.</span><span class="n">has_key?</span><span class="p">(</span><span class="n">word</span><span class="o">[</span><span class="n">i</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>          <span class="n">current_hash</span><span class="o">[</span><span class="n">word</span><span class="o">[</span><span class="n">i</span><span class="o">]]</span> <span class="o">=</span> <span class="no">Node</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">word</span><span class="o">[</span><span class="n">i</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">end</span>
+</span><span class='line'>        <span class="n">current_hash</span><span class="o">[</span><span class="n">word</span><span class="o">[</span><span class="n">i</span><span class="o">]].</span><span class="n">word_end</span> <span class="o">=</span> <span class="kp">true</span> <span class="k">if</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span> <span class="o">==</span> <span class="n">word</span><span class="o">.</span><span class="n">length</span>
+</span><span class='line'>        <span class="n">current_hash</span> <span class="o">=</span> <span class="n">current_hash</span><span class="o">[</span><span class="n">word</span><span class="o">[</span><span class="n">i</span><span class="o">]].</span><span class="n">children</span>
+</span><span class='line'>        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Let’s break down what’s happening here. In order to build the tree, I iterate through each word and compare it to the pre-existing <code>@word_tree</code>. Each letter is checked by index, and is added to the hash if the node for that letter does not already exist. The method then checks to see if the letter is the last in the word, and sets the node’s <code>@word_end</code> value to true if it is. Finally, the <code>current_hash</code> is set to be not the <code>@word_tree</code>, but the hash containing the children of the current node.</p>
+
+<p>Here’s an example tree for <code>DictionaryTree.new(["hats", "hat", "her", "cat"])</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="p">{</span><span class="s2">&quot;h&quot;</span><span class="o">=&gt;</span><span class="c1">#&lt;Node:0x007f8fbb83dc48</span>
+</span><span class='line'>  <span class="vi">@letter</span><span class="o">=</span><span class="s2">&quot;h&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="vi">@word_end</span><span class="o">=</span><span class="kp">false</span><span class="p">,</span>
+</span><span class='line'>  <span class="vi">@children</span><span class="o">=</span><span class="p">{</span>
+</span><span class='line'>    <span class="s2">&quot;a&quot;</span><span class="o">=&gt;</span><span class="c1">#&lt;Node:0x007f8fbb83d770</span>
+</span><span class='line'>      <span class="vi">@letter</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="vi">@word_end</span><span class="o">=</span><span class="kp">false</span><span class="p">,</span>
+</span><span class='line'>      <span class="vi">@children</span><span class="o">=</span><span class="p">{</span>
+</span><span class='line'>        <span class="s2">&quot;t&quot;</span><span class="o">=&gt;</span><span class="c1">#&lt;Node:0x007f8fbb83d388</span>
+</span><span class='line'>        <span class="vi">@letter</span><span class="o">=</span><span class="s2">&quot;t&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="vi">@word_end</span><span class="o">=</span><span class="kp">true</span><span class="p">,</span>
+</span><span class='line'>        <span class="vi">@children</span><span class="o">=</span><span class="p">{</span>
+</span><span class='line'>          <span class="s2">&quot;s&quot;</span><span class="o">=&gt;</span><span class="c1">#&lt;Node:0x007f8fbb83d068</span>
+</span><span class='line'>          <span class="vi">@letter</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">,</span>
+</span><span class='line'>          <span class="vi">@word_end</span><span class="o">=</span><span class="kp">true</span><span class="p">,</span>
+</span><span class='line'>          <span class="vi">@children</span><span class="o">=</span><span class="p">{}</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s2">&quot;e&quot;</span><span class="o">=&gt;</span><span class="c1">#&lt;Node:0x007f8fbb83ca28</span>
+</span><span class='line'>    <span class="vi">@letter</span><span class="o">=</span><span class="s2">&quot;e&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="vi">@word_end</span><span class="o">=</span><span class="kp">false</span><span class="p">,</span>
+</span><span class='line'>    <span class="vi">@children</span><span class="o">=</span><span class="p">{</span>
+</span><span class='line'>      <span class="s2">&quot;r&quot;</span><span class="o">=&gt;</span><span class="c1">#&lt;Node:0x007f8fbb83c730</span>
+</span><span class='line'>        <span class="vi">@letter</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">,</span>
+</span><span class='line'>        <span class="vi">@word_end</span><span class="o">=</span><span class="kp">true</span><span class="p">,</span>
+</span><span class='line'>        <span class="vi">@children</span><span class="o">=</span><span class="p">{}</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class='line'><span class="s2">&quot;c&quot;</span><span class="o">=&gt;</span><span class="c1">#&lt;Node:0x007f8fbb83c410</span>
+</span><span class='line'>  <span class="vi">@letter</span><span class="o">=</span><span class="s2">&quot;c&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="vi">@word_end</span><span class="o">=</span><span class="kp">false</span><span class="p">,</span>
+</span><span class='line'>  <span class="vi">@children</span><span class="o">=</span><span class="p">{</span>
+</span><span class='line'>    <span class="s2">&quot;a&quot;</span><span class="o">=&gt;</span><span class="c1">#&lt;Node:0x007f8fbb83c0f0</span>
+</span><span class='line'>      <span class="vi">@letter</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span>
+</span><span class='line'>      <span class="vi">@word_end</span><span class="o">=</span><span class="kp">false</span><span class="p">,</span>
+</span><span class='line'>      <span class="vi">@children</span><span class="o">=</span><span class="p">{</span>
+</span><span class='line'>        <span class="s2">&quot;t&quot;</span><span class="o">=&gt;</span><span class="c1">#&lt;Node:0x007f8fbb837d70</span>
+</span><span class='line'>          <span class="vi">@letter</span><span class="o">=</span><span class="s2">&quot;t&quot;</span><span class="p">,</span>
+</span><span class='line'>          <span class="vi">@word_end</span><span class="o">=</span><span class="kp">true</span><span class="p">,</span>
+</span><span class='line'>          <span class="vi">@children</span><span class="o">=</span><span class="p">{}</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&gt;</span><span class="p">}</span><span class="o">&gt;</span><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Of course, writing a method like this in Ruby leaves something to be desired. Really, a data tree like this should be written with pointers, not as a nested hash. But, for a quick Ruby experiment, this did create a functional equivalent of a node tree that could be used as a spell-checker. For more info on how spelling <em>correction</em> works, I highly recommend <a href="https://engineerbyday.wordpress.com/2012/01/30/how-spell-checkers-work-part-1/">this blog</a>.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -837,6 +1038,10 @@ What’s going on with <code>this</code> anyway?</p>
       <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2016/03/01/node-trees-and-ruby-dot-dot-dot/">Node Trees and Ruby...</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2016/02/11/intro-to-the-jquery-validation-plugin/">Intro to the jQuery Validation Plugin</a>
